@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>7locked GE</title>
+
+    <!-- keep your existing favicon and stylesheet reference -->
+    <link rel="icon" type="image/x-icon" href="image/favicon.ico">
+    <link rel="stylesheet" href="css/homepage.css">
+
+    <style>
+      /* Minimal overrides and new visuals — uses only assets already in the repo (image/*) */
+      :root { color-scheme: dark; }
+      html,body { height:100%; margin:0; background:#000; color:#fff; font-family: Arial, Helvetica, sans-serif; overflow:hidden; }
+      .topbar { padding:18px; display:flex; gap:14px; align-items:center; }
+      .brand img { display:block; }
+
+      .wrap { height: calc(100vh - 72px); display:flex; align-items:center; justify-content:center; padding:18px; box-sizing:border-box; }
+      .content { max-width:1100px; width:100%; display:grid; grid-template-columns: 1fr 220px; gap:24px; align-items:center; }
+
+      /* left column (hero) */
+      .hero { background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.03); border-radius:12px; padding:18px; display:flex; gap:18px; align-items:center; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+      .preview { width:160px; height:160px; min-width:160px; min-height:160px; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); background:#0a0a0a; display:flex; align-items:center; justify-content:center; }
+      .preview img { width:100%; height:100%; object-fit:cover; display:block; }
+
+      .meta h1 { margin:0 0 6px 0; font-size:28px; }
+      .meta p { margin:0; color:rgba(255,255,255,0.78); }
+
+      /* original two buttons preserved (labels/targets unchanged) */
+      .actions { margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; }
+      .button2 {
+        display:inline-block;
+        text-decoration:none;
+        padding:10px 14px;
+        border-radius:8px;
+        background:transparent;
+        color:#fff;
+        border:1px solid rgba(255,255,255,0.06);
+        font-weight:700;
+        transition: transform .14s ease, background .14s ease;
+      }
+      .button2:hover { transform: translateY(-3px); background: rgba(255,255,255,0.02); }
+
+      /* right column: vertical scroller showing repeated Minecraft icon (uses image/minecraft.jpg) */
+      .scroller { height:70vh; display:flex; align-items:center; justify-content:center; }
+      .mask { width:120px; height:100%; overflow:hidden; border-radius:10px; border:1px solid rgba(255,255,255,0.03); background:linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0)); display:flex; align-items:center; }
+      .track { display:flex; flex-direction:column; gap:12px; padding:18px 10px; animation:scrollUp linear infinite; }
+      .item { width:84px; height:84px; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); background:#090909; display:flex; align-items:center; justify-content:center; }
+      .item img { width:100%; height:100%; object-fit:cover; display:block; cursor:pointer; }
+
+      @keyframes scrollUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+
+      /* background subtle animated gradients and orbs */
+      .bg { position:fixed; inset:0; z-index:-2;
+        background:
+          radial-gradient(600px 300px at 10% 20%, rgba(34,211,238,0.06), transparent 8%),
+          radial-gradient(500px 300px at 90% 80%, rgba(124,58,237,0.06), transparent 12%),
+          linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0));
+        animation: bgShift 20s ease-in-out infinite alternate;
+        mix-blend-mode: screen;
+      }
+      @keyframes bgShift { 0%{ transform: translateY(0) scale(1); } 50%{ transform: translateY(-8px) scale(1.02); } 100%{ transform: translateY(0) scale(1); } }
+
+      .orbs { position:fixed; inset:0; pointer-events:none; z-index:-1; }
+
+      /* responsive: stack on small screens and hide scroller */
+      @media (max-width:900px) {
+        .content { grid-template-columns: 1fr; }
+        .scroller { display:none; }
+        .hero { justify-content:flex-start; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- top bar with your existing logo -->
+    <div class="topbar">
+      <div class="brand"><a href="7locked.github.io"><img src="image/7locked-ge-new.png" width="194" height="49.5" alt="7Locked"></a></div>
+    </div>
+
+    <div class="wrap">
+      <div class="content">
+        <!-- left / hero -->
+        <div class="hero">
+          <div class="preview" id="hero-preview">
+            <!-- use the exact Minecraft icon referenced on all-games.html -->
+            <img src="image/minecraft.jpg" alt="Minecraft" id="hero-img">
+          </div>
+
+          <div class="meta">
+            <h1>7Locked Github Edition (GE) Alpha</h1>
+            <p style="font-family:arial">Welcome to 7Locked! Games are being added here with every update!</p>
+
+            <!-- ORIGINAL TWO BUTTONS (labels and targets unchanged) -->
+            <div class="actions">
+              <a href="https://7locked.github.io/gamecreation.html" class="button2">Create your own game here!</a>
+              <a href="https://7locked.github.io/all-games.html" class="button2">All Games</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- right / scroller -->
+        <div class="scroller" aria-hidden="true">
+          <div class="mask">
+            <div class="track" id="scroller-track"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg"></div>
+    <div class="orbs" id="orbs-root"></div>
+
+    <script>
+      // Only uses image/minecraft.jpg already in your repo.
+      (function(){
+        const track = document.getElementById('scroller-track');
+        const src = 'image/minecraft.jpg';
+
+        function makeItem() {
+          const d = document.createElement('div');
+          d.className = 'item';
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = 'Minecraft';
+          d.appendChild(img);
+          // pause scroll on hover
+          d.addEventListener('mouseenter', () => track.style.animationPlayState = 'paused');
+          d.addEventListener('mouseleave', () => track.style.animationPlayState = 'running');
+          // clicking any preview updates the hero preview (still same image file)
+          d.addEventListener('click', () => {
+            const hero = document.getElementById('hero-img');
+            if (hero) {
+              hero.src = src;
+              // subtle pulse
+              document.getElementById('hero-preview').animate([{ transform: 'scale(.98)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'ease-out' });
+            }
+          });
+          return d;
+        }
+
+        const count = 8;
+        for (let i=0;i<count;i++) track.appendChild(makeItem());
+        for (let i=0;i<count;i++) track.appendChild(makeItem()); // duplicate for seamless feel
+
+        // set animation duration based on track height
+        setTimeout(() => {
+          const oneSet = track.scrollHeight / 2;
+          const pxPerSec = 36;
+          const dur = Math.max(12, Math.round(oneSet / pxPerSec));
+          track.style.animationDuration = dur + 's';
+        }, 60);
+
+        // floating orbs (no external assets)
+        const orbsRoot = document.getElementById('orbs-root');
+        const gradients = [
+          'radial-gradient(circle at 30% 30%, rgba(124,58,237,0.16), rgba(34,211,238,0.06))',
+          'radial-gradient(circle at 30% 30%, rgba(34,211,238,0.14), rgba(124,58,237,0.03))'
+        ];
+        for (let i=0;i<6;i++){
+          const o = document.createElement('div');
+          o.style.position = 'absolute';
+          const s = 80 + Math.random()*220;
+          o.style.width = o.style.height = s + 'px';
+          o.style.left = (Math.random()*100) + '%';
+          o.style.top = (Math.random()*100) + '%';
+          o.style.borderRadius = '999px';
+          o.style.filter = 'blur(14px) saturate(140%)';
+          o.style.opacity = (0.06 + Math.random()*0.18);
+          o.style.background = gradients[i%gradients.length];
+          o.style.mixBlendMode = 'screen';
+          orbsRoot.appendChild(o);
+          o.animate([
+            { transform: 'translateY(0) scale(1)' },
+            { transform: 'translateY(' + (Math.random()*40 - 20) + 'px) scale(1.05)' },
+            { transform: 'translateY(0) scale(1)' }
+          ], { duration: 9000 + Math.random()*15000, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' });
+        }
+      })();
+    </script>
+  </body>
+</html>
